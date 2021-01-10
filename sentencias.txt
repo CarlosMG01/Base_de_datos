@@ -1,0 +1,175 @@
+
+CREACIÓN
+
+CREATE TABLE IF NOT EXISTS "archivos multimedia"(ruta TEXT NOT NULL UNIQUE PRIMARY KEY, texto_alternativo TEXT);
+CREATE TABLE IF NOT EXISTS "noticias"(id_noticia INTEGER NOT NULL UNIQUE PRIMARY KEY ASC AUTOINCREMENT, titulo TEXT NOT NULL UNIQUE, fecha_publicacion DATE NOT NULL, lugar TEXT, cuerpo TEXT NOT NULL UNIQUE, dni_autor TEXT, FOREIGN KEY(dni_autor) REFERENCES "autores"(dni) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE IF NOT EXISTS "temas"(nombre_tema TEXT NOT NULL UNIQUE PRIMARY KEY, nombre_seccion TEXT, FOREIGN KEY(nombre_seccion) REFERENCES "secciones"(nombre_seccion) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE IF NOT EXISTS "autores"(nombre TEXT NOT NULL, apellidos TEXT, dni TEXT UNIQUE PRIMARY KEY CHECK (length(dni) <= 9));
+CREATE TABLE IF NOT EXISTS "noticias relacionadas"(id_relacion INTEGER NOT NULL UNIQUE PRIMARY KEY ASC AUTOINCREMENT, id_noticia1 INTEGER NOT NULL, id_noticia2 INTEGER NOT NULL, FOREIGN KEY(id_noticia1) REFERENCES "noticias"(id_noticia) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY(id_noticia2) REFERENCES "noticias"(id_noticia) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE IF NOT EXISTS "temas_noticias"(id_relacion INTEGER NOT NULL UNIQUE PRIMARY KEY ASC AUTOINCREMENT, nombre_tema TEXT NOT NULL, id_noticia INTEGER NOT NULL, FOREIGN KEY(nombre_tema) REFERENCES "temas"(nombre_tema) ON DELETE SET NULL ON UPDATE CASCADE, FOREIGN KEY(id_noticia) REFERENCES "noticias"(id_noticia) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE IF NOT EXISTS "comentarios"(id_comentario INTEGER NOT NULL UNIQUE PRIMARY KEY ASC AUTOINCREMENT, comentario TEXT NOT NULL, fecha_post DATE NOT NULL, email_usuario TEXT NOT NULL, id_noticia INTEGER NOT NULL, id_respuesta INTEGER, FOREIGN KEY(email_usuario) REFERENCES "usuarios"(email) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY(id_noticia) REFERENCES "noticias" ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY(id_respuesta) REFERENCES "comentarios"(id_comentario) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE secciones(nombre_seccion TEXT NOT NULL UNIQUE PRIMARY KEY, edad_recomendada INTEGER);
+CREATE TABLE IF NOT EXISTS "usuarios"(email TEXT NOT NULL UNIQUE PRIMARY KEY, nickname TEXT NOT NULL UNIQUE, contraseña TEXT NOT NULL, fecha_nacimiento DATE NOT NULL, notificaciones INTEGER NOT NULL DEFAULT 0, foto_perfil TEXT, FOREIGN KEY(foto_perfil) REFERENCES "archivos multimedia"(ruta) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE IF NOT EXISTS "secciones favoritas"(id_relacion INTEGER NOT NULL UNIQUE PRIMARY KEY ASC AUTOINCREMENT, email TEXT NOT NULL, nombre_seccion TEXT NOT NULL, FOREIGN KEY(email) REFERENCES "usuarios"(email) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY(nombre_seccion) REFERENCES "secciones"(nombre_seccion) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE IF NOT EXISTS "multimedia_noticias"(id_relacion INTEGER NOT NULL UNIQUE PRIMARY KEY ASC AUTOINCREMENT, ruta TEXT NOT NULL, id_noticia INTEGER NOT NULL, portada INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(ruta) REFERENCES "archivos multimedia"(ruta) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY(id_noticia) REFERENCES "noticias"(id_noticia) ON DELETE CASCADE ON UPDATE CASCADE);
+create view imagenes_noticia as select ruta from multimedia_noticias inner join noticias where id_noticia.noticias = id_noticia.multimedia_noticias;
+create view secciones_temas as select * from secciones natural join temas;
+
+
+CARGA DE DATOS
+
+insert into noticias (titulo,fecha_publicacion, lugar, cuerpo, dni_autor )values ("Madrid confina otras 23 zonas y nueve localidades más ante el aumento de contagios","08/01/2021","Madrid", "Los cierres perimetrales afectarán a 1,2 millones de residentes de la región, el 18,3% de la población","45657685U");
+insert into autores values ("Julio (Maldini)","Maldonado","95657685H" );
+insert into "noticias relacionadas" values ("3","4","1");
+insert into comentarios (comentario,fecha_post, email_usuario, id_noticia, id_respuesta) values ("VAMOS MI GRANÁ","08/01/2021","andaluz@gmail.com","2","");
+insert into usuarios values ("gringo@gmail.com","Michael","contraseña","14/12/1969",1,"");
+INSERT INTO "archivos multimedia" VALUES('Archivos_Multimedia\coronavirus.jpg','coronavirus');
+INSERT INTO "archivos multimedia" VALUES('Archivos_Multimedia\imagen_granada.jpg','imagen_granada');
+INSERT INTO usuarios VALUES('correo@correo.com','Eugenio','contraseña','25/05/2001',1,NULL);
+INSERT INTO usuarios VALUES('correos@correo.com','Quique','contraseña','25/05/2001',1,'');
+INSERT INTO usuarios VALUES('c.marcos3@usp.ceu.es','CarlosMG','contraseña','25/05/2001',1,'');
+INSERT INTO usuarios VALUES('gringo@gmail.com','Michael','contraseña','14/12/1969',1,'');
+INSERT INTO usuarios VALUES('gringo2@gmail.com','Axel','contraseña','13/1/1960',1,'');
+INSERT INTO usuarios VALUES('madrileño@gmail.com','Pucho','contraseña','19/5/1980',1,'');
+INSERT INTO temas VALUES('futbol','deporte');
+INSERT INTO temas VALUES('baloncesto','deporte');
+INSERT INTO temas VALUES('balonmano','deporte');
+INSERT INTO temas VALUES('literatura','opinion');
+INSERT INTO temas VALUES('filosofia','opinion');
+INSERT INTO temas VALUES('actualidad','opinion');
+INSERT INTO temas VALUES('PIB','economia');
+INSERT INTO temas VALUES('IBEX 35','economia');
+INSERT INTO temas VALUES('Esadisticas','economia');
+INSERT INTO autores VALUES('Eugenio Pablo',' Murillo Solanas','78439867Y');
+INSERT INTO autores VALUES('Carlos',' Marcos Guillem','78439467Y');
+INSERT INTO autores VALUES('Enrique',' Robles Uriel','48439467Y');
+INSERT INTO autores VALUES('Julio (Maldini)','Maldonado','95657685H');
+INSERT INTO autores VALUES('Iker','Jiménez','45657685U');
+INSERT INTO noticias VALUES(1,'ULTIMA HORA CORONAVIRUS','18/12/2020','Madrid','El coronavirus provoca muchas muertes en las últimas horas','78439867Y');
+INSERT INTO noticias VALUES(2,'EL GRANADA SE LA JUEGA EN EUROPA','18/12/2020','España','El equipo de Diego Martinez juega esta tarde contra el napoles','78439867Y');
+INSERT INTO noticias VALUES(3,'Las navidades aumentan los casos','27/12/2020','Madrid','Madrid no soporta la carga virica tras las navidades','48439467Y');
+INSERT INTO noticias VALUES(4,'Madrid confina otras 23 zonas y nueve localidades más ante el aumento de contagios','08/01/2021','Madrid','Los cierres perimetrales afectarán a 1,2 millones de residentes de la región, el 18,3% de la población','45657685U');
+INSERT INTO noticias VALUES(5,'Pelosi habla con los militares del Pentágono para quitarle a Trump el control de los códigos nucleares','08/01/2021','EEUU','Nancy Pelosi, la presidenta de la Cámara de representantes, ha dicho este viernes que ha hablado con los responsables militares para evitar que Trump use los códigos nucleares. ','45657685U');
+INSERT INTO noticias VALUES(6,'Zidane se sentará en el banquillo de El Sadar tras recibir el OK de la Liga','08/01/2021','España','Una persona cercana al francés había dado positivo en coronavirus, pero el técnico ha dado negativo en el test PCR al que se sometió anoche y ya tiene el permiso de la Liga para viajar a Pamplona.','95657685H');
+INSERT INTO noticias VALUES(7,'La respuesta de Luka Doncic a Shaquille O''Neal tras anotar 38 puntos: Sergio Llull, Rudy, Felipe Reyes...','08/01/2021','EEUU','','95657685H');
+INSERT INTO comentarios VALUES(1,'Me encanta esta noticia','27/12/2020','c.marcos3@usp.ceu.es',1,NULL);
+INSERT INTO comentarios VALUES(2,'Coincido','27/12/2020','correo@correo.com',1,1);
+INSERT INTO comentarios VALUES(4,'Trump ha incitado al odio','08/01/2021','gringo@gmail.com',4,'');
+INSERT INTO comentarios VALUES(5,'Yo estoy en desacuerdo con este comentario','08/01/2021','gringo2@gmail.com',4,4);
+INSERT INTO comentarios VALUES(6,'VAMOS MI GRANÁ','08/01/2021','andaluz@gmail.com',2,'');
+INSERT INTO comentarios VALUES(7,'Es una verguenza este gobierno','08/01/2021','madrileño@gmail.com',4,'');
+INSERT INTO comentarios VALUES(8,'Este país es una verguenza','08/01/2021','madrileño@gmail.com',3,'');
+INSERT INTO comentarios VALUES(9,'Luka Doncic es el mejor!!!','08/01/2021','madrileño@gmail.com',7,'');
+INSERT INTO "secciones favoritas" VALUES(1,'c.marcos3@usp.ceu.es','deporte');
+INSERT INTO "secciones favoritas" VALUES(2,'correo@correo.com','opinion');
+INSERT INTO "secciones favoritas" VALUES(3,'correos@correo.com','economia');
+INSERT INTO "secciones favoritas" VALUES(4,'correo@correo.com','economia');
+INSERT INTO "secciones favoritas" VALUES(5,'gringo2@gmail.com','internacional');
+INSERT INTO "secciones favoritas" VALUES(6,'gringo2@gmail.com','actualidad');
+INSERT INTO "secciones favoritas" VALUES(7,'gringo2@gmail.com','deporte');
+INSERT INTO "secciones favoritas" VALUES(8,'gringo@gmail.com','deporte');
+INSERT INTO "secciones favoritas" VALUES(9,'gringo@gmail.com','actualidad');
+INSERT INTO "secciones favoritas" VALUES(10,'madrileño@gmail.com','españa');
+INSERT INTO "secciones favoritas" VALUES(11,'madrileño@gmail.com','opinion');
+INSERT INTO "secciones favoritas" VALUES(12,'madrileño@gmail.com','deporte');
+INSERT INTO temas_noticias VALUES(1,'futbol',2);
+INSERT INTO temas_noticias VALUES(2,'actualidad',1);
+INSERT INTO temas_noticias VALUES(3,'actualidad',3);
+INSERT INTO temas_noticias VALUES(4,'actualidad',4);
+INSERT INTO temas_noticias VALUES(5,'actualidad',5);
+INSERT INTO temas_noticias VALUES(6,'futbol',6);
+INSERT INTO temas_noticias VALUES(7,'baloncesto',7);
+INSERT INTO "noticias relacionadas" VALUES(1,1,2);
+INSERT INTO "noticias relacionadas" VALUES(2,2,3);
+INSERT INTO "noticias relacionadas" VALUES(3,4,1);
+INSERT INTO "noticias relacionadas" VALUES(4,4,3);
+INSERT INTO "noticias relacionadas" VALUES(5,2,5);
+INSERT INTO "noticias relacionadas" VALUES(6,2,6);
+INSERT INTO multimedia_noticias VALUES(1,'imagenes/ejemplo',1,1);
+INSERT INTO multimedia_noticias VALUES(2,'imagenes/ejemplo',2,1);
+INSERT INTO multimedia_noticias VALUES(3,'imagenes/ejemplo',3,1);
+INSERT INTO secciones VALUES('deporte',4);
+INSERT INTO secciones VALUES('opinion',12);
+INSERT INTO secciones VALUES('españa',8);
+INSERT INTO secciones VALUES('economia',8);
+INSERT INTO secciones VALUES('internacional',8);
+INSERT INTO secciones VALUES('cultura',8);
+INSERT INTO secciones VALUES('ciencia y tecnología',8);
+INSERT INTO secciones VALUES('actualidad',12);
+
+
+CONSULTAS
+
+
+Se utiliza para ver las secciones favoritas asociadas a un usuario.
+select nombre_seccion from "secciones favoritas" where email = "correo@correo.com";
+
+Se utiliza para hacer estadisticas anonimas de cuantos usuarios tienen cierta sección como favorita.
+select distinct count(email) from "secciones favoritas" where nombre_seccion = "economia";
+
+Se utiliza para cargar los datos del usuario al iniciar sesión.
+select * from "usuarios" where email = "correo@correo.com";
+
+Se utiliza para modificar la foto de perfil o eliminar si es null.
+update or fail usuarios set foto_perfil = "prueba" where email = "correo@correo.com";
+
+Se utiliza para modificar la contraseña.
+update or fail usuarios set contraseña = "contraseña" where email = "correo@correo.com";
+
+Se utiliza para modificar el valor de notificaciones.
+update or fail usuarios set notificaciones = "prueba" where email = "correo@correo.com";
+
+Se utiliza para modificar el nickname.
+update or fail usuarios set nickname = "nickname" where email = "correo@correo.com";
+
+Se utiliza para obtener todas las secciones.
+select nombre_seccion from secciones;
+
+Se utiliza para obtener todos los temas de una sección.
+select nombre_tema from temas where nombre_seccion = "deporte";
+
+Se utiliza para borrar un comentario.
+delete from comentarios where id_comentario = 3;
+
+Se utiliza para banear/borrar un usuario que ha hecho un comentario negativo;
+delete from usuarios where email_usuario= (select email_usuario from comentarios where id_comentario=1);
+
+Se utiliza para borrar todas las noticias de la base de datos (ejecutar solo en caso de emergencia)
+drop table noticias;
+
+Se utiliza para obtener algunos campos de todos los comentarios de un usuario.
+select comentario,fecha_post,id_noticia,id_respuesta from comentarios where email_usuario = "correo@correo" order by comentario;
+
+Se utiliza para obtener la ruta de la portada de una noticia, el titulo de la noticia y el id de la noticia.
+select ruta,titulo,multimedia_noticias.id_noticia from multimedia_noticias inner join noticias on noticias.id_noticia = multimedia_noticias.id_noticia where noticias.id_noticia = 1 and portada = 1;
+
+Se utiliza para obtener el titulo y la ruta de la portada de las noticias relacionadas con otras.
+select ruta, titulo from imagenes_noticia inner join "noticias relacionadas" on portada = 1 and id_noticia = "noticias relacionadas".id_noticia2 where "noticias relacionadas".id_noticia1 = 3;
+
+Se utiliza para obtener el nombre y apellidos del autor de una noticia.
+select group_concat(nombre, apellidos) as Autor from autores inner join noticias where autores.dni = noticias.dni_autor and id_noticia = 1 order by apellidos;
+
+Se utiliza para obtener todas las noticias de un autor limitándolo a un número X de obras(por si fuera muy extensa la obra del autor).
+select id_noticia, titulo from noticias inner join autores on nombre = "Eugenio Pablo" and apellidos = " Murillo Solanas" where autores.dni = noticias.dni_autor limit 50;
+
+Se utiliza para saber el número de comentarios de una noticia.
+select count(comentario) as "Comentarios" from comentarios where id_noticia = 1;
+
+Se utiliza para obtener los comentarios de una noticia
+select comentario,usuarios.nickname,fecha_post,foto_perfil from comentarios inner join usuarios on id_noticia = 1 where usuarios.email = comentarios.email_usuario group by usuarios.nickname;
+
+Se utiliza para obtener la noticia que ha sido introducida en la base de datos más recientemente.
+select titulo, cuerpo from noticias where id_noticia=(select max(id_noticia) from noticias);
+
+Se utiliza para buscar los usuarios que tengan un nickname que empiece por una letra determinada
+select nickname from usuarios where nickname like "q%";
+
+Se utiliza para saber cuales son las secciones y temas con una edad recomendada menor a X.
+select * from secciones_temas group by nombre_seccion having edad_recomendada<=8;
+
+
+
+
+
+
+
